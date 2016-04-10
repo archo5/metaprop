@@ -10,10 +10,10 @@ This project tries to makes that easier.
 
 - Download [SGScript virtual machine](http://www.sgscript.org/#download), unpack somewhere & add to PATH.
 - Put `mpdgen.sgs` in virtual machine directory.
-- Describe your data structures as shown in the [metaprop.mpd.sgs](../blob/master/metaprop.mpd.sgs) file.
+- Describe your data structures as shown in the [metaprop.mpd.sgs](metaprop.mpd.sgs) file.
 - Add compile step `sgsvm -p mpdgen <input_sgs> > <output_h>`
 - Include generated `<output_h>` in your source code after structure definitions
-- For detailed usage examples, please see [metaprop.cpp](../blob/master/metaprop.cpp).
+- For detailed usage examples, please see [metaprop.cpp](metaprop.cpp).
 
 ## Features
 
