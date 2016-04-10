@@ -1,0 +1,73 @@
+
+STRUCT("StdString",
+{
+	nativetype = "std::string",
+	index = { subtype = "int8_t" },
+	props =
+	[
+		{ name = "data", type = "mpd_StringView", get = "mpd_StringView::create(_OBJ_->c_str(), _OBJ_->size())", set = "_OBJ_->assign(_VAR_.get_stringview().str, _VAR_.get_stringview().size)" },
+		{ name = "size", type = "int32_t", get = "_OBJ_->size()", set = "_OBJ_->resize(_VAR_.get_int32())" },
+	],
+});
+
+STRUCT("Vec2",
+{
+	props =
+	[
+		{ name = "x", type = "float" },
+		{ name = "y", type = "float" },
+	],
+	metadata = { type = "mathtype/vec2", edit = "normal" },
+});
+
+STRUCT("AABB2",
+{
+	props =
+	[
+		{ name = "pmin", type = "Vec2", metadata = { "x/min" = -1000, "x/max" = 1000, "y/min" = -1000, "y/max" = 1000 } },
+		{ name = "pmax", type = "Vec2" },
+	],
+});
+
+POINTER("Vec2Ptr", "Vec2", ["UnHandle<Vec2>"]);
+
+ENUM("PosType",
+{
+	Unknown = { value = ENUM, metadata = { label = "!!!UNKNOWN!!!" }, },
+	Relative = ENUM,
+	Absolute = ENUM,
+});
+
+STRUCT("OptPos",
+{
+	props =
+	[
+		{ name = "type", type = "PosType" },
+		{ name = "ppos", type = "Vec2Ptr" },
+		{ name = "pdir", type = "Vec2Ptr" },
+		{ name = "pmgd", type = "Vec2Ptr" },
+		{ name = "pmgu", type = "Vec2Ptr" },
+		// fake props
+	//	{ name = "typestr", type = "StdString" },
+	],
+});
+
+STRUCT("Node",
+{
+	props =
+	[
+		{ name = "lft", type = "NodePtr" },
+		{ name = "rgt", type = "NodePtr" },
+	],
+});
+POINTER("NodePtr", "Node", ["NodeHandle"]);
+
+STRUCT("NodeOptPos",
+{
+	props =
+	[
+		{ name = "node", type = "Node" },
+		{ name = "optpos", type = "OptPos" },
+	],
+});
+
