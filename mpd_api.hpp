@@ -342,7 +342,7 @@ template< class T > void mpd_DumpInfo()
 		const mpd_EnumValue* v = MT::values();
 		while( v->name )
 		{
-			printf( "\t%s = %"PRId64, v->name, v->value );
+			printf( "\t%s = %" PRId64, v->name, v->value );
 			mpd_DumpMetadata( v->metadata );
 			puts("");
 			++v;
@@ -385,7 +385,7 @@ void mpd_DumpInfo( const virtual_MPD* type, int limit = 5, int level = 0, bool _
 		while( v->name )
 		{
 			__mpd_reprint( "\t", level );
-			printf( "%s = %"PRId64, v->name, v->value );
+			printf( "%s = %" PRId64, v->name, v->value );
 			mpd_DumpMetadata( v->metadata );
 			puts("");
 			++v;

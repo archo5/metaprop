@@ -124,7 +124,11 @@ function TypeInfoPart( t )
 
 
 // header
-print '\n#include "mpd_api.hpp"\n\n';
+print '\n';
+print '#ifndef MPD_API_HPP\n';
+print '#  define MPD_API_HPP "mpd_api.hpp"\n';
+print '#endif\n';
+print '#include MPD_API_HPP\n\n';
 
 // metadata
 foreach( struct : structs )
