@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <string.h>
 
-#define __STDC_FORMAT_MACROS
+#ifndef __STDC_FORMAT_MACROS
+#  define __STDC_FORMAT_MACROS 1
+#endif
 #ifdef _MSC_VER
 #  include <stdint.h>
 #  if _MSC_VER >= 1700
