@@ -3,6 +3,17 @@
 #include "metaprop.mpd.hpp"
 
 
+mpd_StringView OptPos::getTypeString() const
+{
+	return mpd_StringView::create( mpd_Value2Name( type ) );
+}
+
+void OptPos::setTypeFromString( mpd_StringView name )
+{
+	type = mpd_Name2Value( name, Unknown );
+}
+
+
 int main()
 {
 	puts( "--- basic info dumping ---" );
@@ -78,6 +89,14 @@ int main()
 	OptPos x003 = { Relative, &x001, NULL, &x001, NULL };
 	mpd_DumpData( x003 );
 	puts("\n");
+	
+	puts( "--- enum/fake prop interaction ---" );
+	puts( "> retrieving fake property (enum name)" );
+	mpd_DumpData( mpd_Variant(x003).getprop("typestr") ); puts("");
+	puts( "> setting fake property (enum name)" );
+	mpd_Variant(x003).setprop( "typestr", "Absolute" );
+	mpd_DumpData( mpd_Variant(x003).getprop("typestr") ); puts("");
+	puts("");
 	
 	puts( "--- pointer target retrieval ---" );
 	mpd_DumpData( mpd_Variant(x003).getprop("ppos").get_target() ); puts("");

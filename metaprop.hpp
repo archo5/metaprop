@@ -35,6 +35,9 @@ struct OptPos
 	Vec2* pdir;
 	UnHandle<Vec2> pmgd;
 	UnHandle<Vec2> pmgu;
+	
+	struct mpd_StringView getTypeString() const;
+	void setTypeFromString( struct mpd_StringView );
 };
 
 struct Node;

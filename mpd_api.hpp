@@ -36,6 +36,15 @@ enum mpd_Type
 	mpdt_Float64,
 };
 
+struct mpd_StringView
+{
+	const char* str;
+	size_t size;
+	
+	static mpd_StringView create( const char* str ){ mpd_StringView out = { str, strlen( str ) }; return out; }
+	static mpd_StringView create( const char* str, size_t size ){ mpd_StringView out = { str, size }; return out; }
+};
+
 //
 // --- DUMP INFO ---
 //
@@ -64,6 +73,13 @@ template<> inline void mpd_DumpData<uint32_t>( MPD_DUMPDATA_ARGS(uint32_t) ){ MP
 template<> inline void mpd_DumpData<uint64_t>( MPD_DUMPDATA_ARGS(uint64_t) ){ MPD_DUMPDATA_USEARGS; printf( "uint64 (%d)", (int) data ); }
 template<> inline void mpd_DumpData<float>( MPD_DUMPDATA_ARGS(float) ){ MPD_DUMPDATA_USEARGS; printf( "float32 (%f)", data ); }
 template<> inline void mpd_DumpData<double>( MPD_DUMPDATA_ARGS(double) ){ MPD_DUMPDATA_USEARGS; printf( "float64 (%f)", data ); }
+template<> inline void mpd_DumpData<mpd_StringView>( MPD_DUMPDATA_ARGS(mpd_StringView) )
+{
+	MPD_DUMPDATA_USEARGS;
+	printf( "[%d]\"", (int) data.size );
+	fwrite( data.str, data.size, 1, stdout );
+	printf( "\"" );
+}
 
 //
 // --- TYPE CONVERSION / DATA TRANSPORT ---
@@ -122,7 +138,8 @@ struct virtual_MPD
 	virtual int vfindpropid_ext( const char* name, size_t sz ) const { (void) name; (void) sz; return -1; }
 	virtual int vfindpropid( const char* name ) const { (void) name; return -1; }
 	virtual int vprop2id( const mpd_PropInfo* prop ){ (void) prop; return -1; }
-	virtual const char* vvalue2name( int32_t val ){ (void) val; return 0; }
+	virtual const char* vvalue2name( int32_t val, const char* def = "<unknown>" ){ (void) val; (void) def; return 0; }
+	virtual int64_t vname2value( mpd_StringView name, int64_t def = 0 ){ (void) name; return def; }
 };
 
 struct none_MPD : virtual_MPD
@@ -133,22 +150,6 @@ struct none_MPD : virtual_MPD
 template< class T > struct mpd_MetaType : none_MPD
 {
 };
-
-struct mpd_StringView
-{
-	const char* str;
-	size_t size;
-	
-	static mpd_StringView create( const char* str ){ mpd_StringView out = { str, strlen( str ) }; return out; }
-	static mpd_StringView create( const char* str, size_t size ){ mpd_StringView out = { str, size }; return out; }
-};
-template<> inline void mpd_DumpData<mpd_StringView>( MPD_DUMPDATA_ARGS(mpd_StringView) )
-{
-	MPD_DUMPDATA_USEARGS;
-	printf( "[%d]\"", (int) data.size );
-	fwrite( data.str, data.size, 1, stdout );
-	printf( "\"" );
-}
 
 struct mpd_Variant
 {
@@ -421,8 +422,10 @@ void mpd_DumpInfo( const virtual_MPD* type, int limit = 5, int level = 0, bool _
 	printf( "}\n" );
 }
 
-template< class T > struct struct_MPD : virtual_MPD
+template< class T, class ST > struct struct_MPD : virtual_MPD
 {
+	typedef ST type;
+	
 	// helper functions
 	static const mpd_PropInfo* prop( int i )
 	{
@@ -462,7 +465,7 @@ template< class T > struct struct_MPD : virtual_MPD
 			return -1;
 		return pid;
 	}
-	static const char* value2name( int64_t val )
+	static const char* value2name( int64_t val, const char* def = "<unknown>" )
 	{
 		const mpd_EnumValue* v = T::values();
 		while( v->name )
@@ -471,7 +474,18 @@ template< class T > struct struct_MPD : virtual_MPD
 				return v->name;
 			++v;
 		}
-		return "<unknown>";
+		return def;
+	}
+	static int64_t name2value( mpd_StringView name, int64_t def = 0 )
+	{
+		const mpd_EnumValue* v = T::values();
+		while( v->name )
+		{
+			if( v->namesz == name.size && memcmp( name.str, v->name, name.size ) == 0 )
+				return v->value;
+			++v;
+		}
+		return def;
 	}
 	
 	// virtual wrappers
@@ -483,11 +497,11 @@ template< class T > struct struct_MPD : virtual_MPD
 	virtual const mpd_TypeInfo* vindextypes() const { return T::indextypes(); }
 	virtual int vvaluecount() const { return T::valuecount(); }
 	virtual const mpd_EnumValue* vvalues() const { return T::values(); }
-	virtual mpd_Variant vgetprop( const void* obj, int prop ) const { return T::getprop( (typename T::type const*) obj, prop ); }
-	virtual bool vsetprop( void* obj, int prop, const mpd_Variant& data ) const { return T::setprop( (typename T::type*) obj, prop, data ); }
-	virtual struct mpd_Variant vgetindex( const void* obj, const mpd_Variant& key ) const { return T::getindex( (typename T::type const*) obj, key ); }
-	virtual bool vsetindex( void* obj, const mpd_Variant& key, const mpd_Variant& val ) const { return T::setindex( (typename T::type*) obj, key, val ); }
-	virtual void vdump( const void* p, int limit, int level ) const { T::dump( (typename T::type const*) p, limit, level ); }
+	virtual mpd_Variant vgetprop( const void* obj, int prop ) const { return T::getprop( (type const*) obj, prop ); }
+	virtual bool vsetprop( void* obj, int prop, const mpd_Variant& data ) const { return T::setprop( (type*) obj, prop, data ); }
+	virtual struct mpd_Variant vgetindex( const void* obj, const mpd_Variant& key ) const { return T::getindex( (type const*) obj, key ); }
+	virtual bool vsetindex( void* obj, const mpd_Variant& key, const mpd_Variant& val ) const { return T::setindex( (type*) obj, key, val ); }
+	virtual void vdump( const void* p, int limit, int level ) const { T::dump( (type const*) p, limit, level ); }
 	// - virtual helper function wrappers
 	virtual const mpd_PropInfo* vprop( int i ){ return prop( i ); }
 	virtual const mpd_PropInfo* vfindprop_ext( const char* name, size_t namesz ){ return findprop_ext( name, namesz ); }
@@ -495,6 +509,16 @@ template< class T > struct struct_MPD : virtual_MPD
 	virtual int vfindpropid_ext( const char* name, size_t sz ) const { return findpropid_ext( name, sz ); }
 	virtual int vfindpropid( const char* name ) const { return findpropid( name ); }
 	virtual int vprop2id( const mpd_PropInfo* prop ){ return prop2id( prop ); }
-	virtual const char* vvalue2name( int64_t val ){ return value2name( val ); }
+	virtual const char* vvalue2name( int64_t val, const char* def = "<unknown>" ){ return value2name( val, def ); }
+	virtual int64_t vname2value( mpd_StringView name, int64_t def = 0 ){ return name2value( name, def ); }
 };
+
+template< class T > const char* mpd_Value2Name( T val, const char* def = "<unknown>" )
+{
+	return mpd_MetaType<T>::value2name( val, def );
+}
+template< class T > T mpd_Name2Value( mpd_StringView name, T def = (T) 0 )
+{
+	return (T) mpd_MetaType<T>::name2value( name, def );
+}
 

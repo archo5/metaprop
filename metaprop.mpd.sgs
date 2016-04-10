@@ -48,7 +48,10 @@ STRUCT("OptPos",
 		{ name = "pmgd", type = "Vec2Ptr" },
 		{ name = "pmgu", type = "Vec2Ptr" },
 		// fake props
-	//	{ name = "typestr", type = "StdString" },
+		{ name = "typestr", type = "mpd_StringView", get = "_OBJ_->getTypeString()", set = "_OBJ_->setTypeFromString(_VAR_.get_stringview())" },
+		// - compilation testing:
+		{ name = "typestr_getonly", type = "mpd_StringView", get = "_OBJ_->getTypeString()", set = false },
+		{ name = "typestr_setonly", type = "mpd_StringView", get = false, set = "_OBJ_->setTypeFromString(_VAR_.get_stringview())" },
 	],
 });
 

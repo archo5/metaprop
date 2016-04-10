@@ -139,10 +139,7 @@ foreach( struct : structs )
 		continue;
 	
 	// metadata struct
-	print "struct ", struct.name, "_MPD : struct_MPD<", struct.name, "_MPD>\n{\n";
-	
-	print "\ttypedef ", struct.nativetype, " type;\n";
-	print "\n";
+	print "struct ", struct.name, "_MPD : struct_MPD<", struct.name, "_MPD, ", struct.nativetype, ">\n{\n";
 	
 	// core
 	print '\tstatic const char* name(){ return "', struct.name, '"; }\n';
@@ -275,9 +272,16 @@ foreach( struct : structs )
 		print "\t{\n";
 		foreach( i, prop : struct.props )
 		{
-			pntype = GET_TYPE( prop.type ).nativetype;
-			prop_get = string_translate( prop.get, { _OBJ_ = "obj", _TYPE_ = pntype } );
-			print "\tcase ", i, ": return (", pntype, " const&) ", prop_get, ";\n";
+			if( prop.get === false )
+			{
+				print "\tcase ", i, ": return mpd_Variant();\n";
+			}
+			else
+			{
+				pntype = GET_TYPE( prop.type ).nativetype;
+				prop_get = string_translate( prop.get, { _OBJ_ = "obj", _TYPE_ = pntype } );
+				print "\tcase ", i, ": return (", pntype, " const&) ", prop_get, ";\n";
+			}
 		}
 		print "\tdefault: return mpd_Variant();\n";
 		print "\t}\n";
@@ -290,9 +294,16 @@ foreach( struct : structs )
 		print "\t{\n";
 		foreach( i, prop : struct.props )
 		{
-			pntype = GET_TYPE( prop.type ).nativetype;
-			prop_set = string_translate( prop.set, { _OBJ_ = "obj", _VAR_ = "val", _TYPE_ = pntype } );
-			print "\tcase ", i, ": ", prop_set, "; return true;\n";
+			if( prop.set === false )
+			{
+				print "\tcase ", i, ": return false;\n";
+			}
+			else
+			{
+				pntype = GET_TYPE( prop.type ).nativetype;
+				prop_set = string_translate( prop.set, { _OBJ_ = "obj", _VAR_ = "val", _TYPE_ = pntype } );
+				print "\tcase ", i, ": ", prop_set, "; return true;\n";
+			}
 		}
 		print "\tdefault: return false;\n";
 		print "\t}\n";
@@ -376,6 +387,8 @@ foreach( struct : structs )
 		print '\t{\n';
 		foreach( prop : struct.props )
 		{
+			if( prop.get === false )
+				continue;
 			prop_get = string_translate( prop.get, { _OBJ_ = "pdata" } );
 			print "\t\tMPD_DUMP_PROP( ", GET_TYPE( prop.type ).nativetype, ", ", prop.name, ", ", prop_get, " );\n";
 		}
