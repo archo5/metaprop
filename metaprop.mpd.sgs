@@ -61,6 +61,7 @@ STRUCT("Node",
 	[
 		{ name = "lft", type = "NodePtr" },
 		{ name = "rgt", type = "NodePtr" },
+		{ name = "opt", type = "bool" },
 	],
 });
 POINTER("NodePtr", "Node", ["NodeHandle"]);

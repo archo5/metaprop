@@ -47,6 +47,7 @@ struct Node
 {
 	NodeHandle lft;
 	NodeHandle rgt;
+	bool opt;
 };
 
 struct NodeOptPos

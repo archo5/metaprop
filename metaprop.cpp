@@ -1,5 +1,6 @@
 
 #include "metaprop.hpp"
+#define MPD_IMPL
 #include "metaprop.mpd.hpp"
 
 
@@ -105,10 +106,10 @@ int main()
 	puts("");
 	
 	puts( "--- recursive structures ---" );
-	Node x004a = { NULL, NULL };
-	Node x004b = { &x004a, NULL };
-	Node x004c = { NULL, NULL };
-	Node x004 = { &x004b, &x004c };
+	Node x004a = { NULL, NULL, false };
+	Node x004b = { &x004a, NULL, true };
+	Node x004c = { NULL, NULL, false };
+	Node x004 = { &x004b, &x004c, true };
 	mpd_DumpInfo<Node>();
 	mpd_DumpData( x004 ); puts("");
 	puts("");
