@@ -33,9 +33,12 @@ POINTER("Vec2Ptr", "Vec2", ["UnHandle<Vec2>"]);
 
 ENUM("PosType",
 {
-	Unknown = { value = ENUM, metadata = { label = "!!!UNKNOWN!!!" }, },
-	Relative = ENUM,
-	Absolute = ENUM,
+	values =
+	{
+		Unknown = { value = ENUM, metadata = { label = "!!!UNKNOWN!!!" }, },
+		Relative = ENUM,
+		Absolute = ENUM,
+	}
 });
 
 STRUCT("OptPos",

@@ -75,7 +75,7 @@ function POINTER( name, subtype, all_natives )
 
 function ENUM( name, values )
 {
-	STRUCT( name, { typeval = "mpdt_Enum", values } );
+	STRUCT( name, get_merged( values, { typeval = "mpdt_Enum" } ) );
 }
 
 function DEFINE_BASETYPE( name, typeval )
@@ -140,7 +140,7 @@ foreach( struct : structs )
 		continue;
 	
 	// metadata struct
-	print "struct ", struct.name, "_MPD : struct_MPD<", struct.name, "_MPD, ", struct.nativetype, ">\n{\n";
+	print "struct ", struct.name, "_MPD : struct_MPD<", struct.name, "_MPD, ", struct.nativetype, " >\n{\n";
 	
 	// property enum
 	if( struct.props )
@@ -219,8 +219,8 @@ function print_metadata( varname, srcdict )
 		foreach( key, val : srcdict )
 		{
 			key = tostring( key );
-			val = tostring( val );
-			print "\t\t{ ", CEsc( key ), ", ", key.length, ", ", CEsc( val ), ", ", val.length, ", ", toint( val ), ", (float) ", toreal( val ), " },\n";
+			sval = tostring( val );
+			print "\t\t{ ", CEsc( key ), ", ", key.length, ", ", CEsc( sval ), ", ", sval.length, ", ", toint( val ), ", (float) ", toreal( val ), " },\n";
 		}
 		print "\t\t{ 0, 0, 0, 0, 0, 0 }\n";
 		print "\t};\n";
@@ -295,7 +295,14 @@ foreach( struct : structs )
 			{
 				pntype = GET_TYPE( prop.type ).nativetype;
 				prop_get = string_translate( prop.get, { _OBJ_ = "obj", _TYPE_ = pntype } );
-				print "\tcase ", i, ": return (", pntype, " const&) ", prop_get, ";\n";
+				if( GET_TYPE( prop.type ).typeval == "mpdt_Enum" )
+				{
+					print "\tcase ", i, ": return mpd_Variant( (", pntype, " const&) ", prop_get, ", mpd_Variant::Enum );\n";
+				}
+				else
+				{
+					print "\tcase ", i, ": return (", pntype, " const&) ", prop_get, ";\n";
+				}
 			}
 		}
 		print "\tdefault: return mpd_Variant();\n";
@@ -317,7 +324,10 @@ foreach( struct : structs )
 			{
 				pntype = GET_TYPE( prop.type ).nativetype;
 				prop_set = string_translate( prop.set, { _OBJ_ = "obj", _VAR_ = "val", _TYPE_ = pntype } );
-				print "\tcase ", i, ": ", prop_set, "; return true;\n";
+				print "\tcase ", i, ": ", prop_set, ";";
+				if( @prop.after_set )
+					print " ", prop.after_set, ";";
+				print " return true;\n";
 			}
 		}
 		print "\tdefault: return false;\n";
@@ -367,11 +377,18 @@ foreach( struct : structs )
 		}
 		print "\tstatic const mpd_EnumValue data[] =\n";
 		print "\t{\n";
+		eprefix = "";
+		if( nt = @struct.nativetype )
+		{
+			pos = string_find_rev( nt, "::" );
+			if( pos !== null )
+				eprefix = string_part( nt, 0, pos + 2 );
+		}
 		foreach( key, info : struct.values )
 		{
 			value = tostring(@info.value);
 			if( value == ENUM )
-				value = key;
+				value = eprefix $ key;
 			print "\t\t{ ", CEsc( key ), ", ", key.length, ", ", value, ", ", key, "_metadata },\n";
 		}
 		print "\t\t{ 0, 0, 0, 0 },\n";
