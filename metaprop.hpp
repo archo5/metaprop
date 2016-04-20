@@ -61,6 +61,8 @@ float randf11(){ return float(rand()) * 2 / float(RAND_MAX) - 1; }
 
 struct BoxTest
 {
+	unsigned char postype;
+	unsigned char mess;
 	Vec2 getRandomVec2() const
 	{
 		Vec2 r = { randf11(), randf11() };

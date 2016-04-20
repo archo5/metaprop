@@ -138,13 +138,21 @@ int main()
 	puts("");
 	
 	puts( "--- boxed return values ---" );
-	BoxTest x006;
+	BoxTest x006 = { Absolute, 123 };
 	puts("> random vec2");
 	Vec2 randvec2 = mpd_Variant( x006 ).getprop( "random_vec2" ).get_obj<Vec2>();
 	printf( "value = %f;%f\n", randvec2.x, randvec2.y );
 	puts("> random string");
 	std::string randstr = mpd_Variant( x006 ).getprop( "random_str" ).get_obj<std::string>();
 	printf( "value = %s\n", randstr.c_str() );
+	puts("");
+	
+	puts( "--- shortened enum ---" );
+	printf( "real enum value: %d\n", (int) x006.postype );
+	printf( "MPD enum value: %d\n", (int) mpd_Variant( x006 ).getprop( "postype" ).get_enum() );
+	mpd_DumpData( mpd_Variant( x006 ).getprop( "postype" ) ); puts("");
+	mpd_DumpData( x006 ); puts("");
+	mpd_DumpData( mpd_Variant( x006 ) ); puts("");
 	puts("");
 	
 	return 0;

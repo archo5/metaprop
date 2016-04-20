@@ -203,6 +203,7 @@ struct virtual_MPD
 	virtual bool vsetindex( void*, const mpd_Variant&, const mpd_Variant& ) const { return false; }
 	virtual void vmethodcall( void*, int, const mpd_Variant*, int ) const {}
 	virtual void vdump( const void*, int, int ) const {}
+	virtual void vdump_enumval( int64_t, int, int ) const {}
 	
 	virtual void vdestruct( void* ) const {}
 	virtual const mpd_PropInfo* vprop( int ) const { return 0; }
@@ -516,8 +517,10 @@ struct mpd_Variant
 		case mpdt_None: printf( "<none>" ); break;
 		case mpdt_Struct:
 		case mpdt_Pointer:
-		case mpdt_Enum:
 			mpdata->vdump( data.p, limit, level );
+			break;
+		case mpdt_Enum:
+			mpdata->vdump_enumval( data.i, limit, level );
 			break;
 		case mpdt_ConstString:
 			printf( "[%d]\"", (int) data.s.size );
@@ -686,6 +689,9 @@ template< class T, class ST > struct struct_MPD : virtual_MPD
 {
 	typedef ST type;
 	
+	// variant/enum dumping hack
+	static void dump_enumval( MPD_STATICDUMP_ARGS(int64_t) ){ MPD_DUMPDATA_USESTATICARGS; }
+	
 	// helper functions
 	static const mpd_PropInfo* prop( int i )
 	{
@@ -822,6 +828,7 @@ template< class T, class ST > struct struct_MPD : virtual_MPD
 	virtual bool vsetindex( void* obj, const mpd_Variant& key, const mpd_Variant& val ) const { return T::setindex( (type*) obj, key, val ); }
 	virtual void vmethodcall( void* obj, int id, const mpd_Variant* args, int argcount ) const { return T::methodcall( (type*) obj, id, args, argcount ); }
 	virtual void vdump( const void* p, int limit, int level ) const { T::dump( (type const*) p, limit, level ); }
+	virtual void vdump_enumval( int64_t v, int limit, int level ) const { T::dump_enumval( &v, limit, level ); }
 	// - virtual helper function wrappers
 	virtual void vdestruct( void* obj ) const { ((type*) obj)->~type(); }
 	virtual const mpd_PropInfo* vprop( int i ) const { return prop( i ); }
