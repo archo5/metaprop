@@ -36,14 +36,28 @@ function STRUCT( name, info )
 	{
 		foreach( prop : info.props )
 		{
+			prop.flags = "";
 			if( @prop.ref === null )
 				prop.ref = "_OBJ_->" $ prop.name;
+			
 			if( @prop.get === null )
 				prop.get = prop.ref;
+			else
+				prop.flags |= " | MPD_PROP_HAS_GETTER";
+			
 			if( @prop.set === null )
 				prop.set = prop.ref $ " = mpd_var_get<_TYPE_ >(_VAR_)";
+			else
+				prop.flags |= " | MPD_PROP_HAS_SETTER";
+			
 			if( @prop.box === null )
 				prop.box = prop.get != prop.ref && is_boxable_type( prop.type );
+			if( prop.box )
+				prop.flags |= " | MPD_PROP_BOXED_GETTER";
+			
+			prop.flags = string_part( prop.flags, 3 );
+			if( !prop.flags )
+				prop.flags = "0";
 		}
 	}
 	index = @info.index;
@@ -286,7 +300,7 @@ foreach( struct : structs )
 	// PROPERTY INFO & INTERFACE
 	if( struct.props.size == 0 )
 	{
-		print "const mpd_PropInfo* ", struct.name, "_MPD::props(){ static const mpd_KeyValue kvnone = { 0, 0, 0, 0, 0, 0 }; static const mpd_PropInfo none = { 0, 0, { 0, mpdt_None, 0 }, &kvnone }; return &none; }\n";
+		print "const mpd_PropInfo* ", struct.name, "_MPD::props(){ static const mpd_KeyValue kvnone = { 0, 0, 0, 0, 0, 0 }; static const mpd_PropInfo none = { 0, 0, { 0, mpdt_None, 0 }, 0, &kvnone }; return &none; }\n";
 		print "mpd_Variant ", struct.name, "_MPD::getprop( ", struct.nativetype, " const*, int ){ return mpd_Variant(); }\n";
 		print "bool ", struct.name, "_MPD::setprop( ", struct.nativetype, "*, int, const mpd_Variant& ){ return false; }\n";
 	}
@@ -303,18 +317,18 @@ foreach( struct : structs )
 		print "\t{\n";
 		foreach( prop : struct.props )
 		{
-			print "\t\t{ ", CEsc( prop.name ), ", ", prop.name.length, ", ", TypeInfoPart( prop.type ), ", ", prop.name, "_metadata },\n";
+			print "\t\t{ ", CEsc( prop.name ), ", ", prop.name.length, ", ", TypeInfoPart( prop.type ), ", ", prop.flags, ", ", prop.name, "_metadata },\n";
 		}
-		print "\t\t{ 0, 0, { 0, mpdt_None, 0 }, 0 },\n";
+		print "\t\t{ 0, 0, { 0, mpdt_None, 0 }, 0, 0 },\n";
 		print "\t};\n";
 		print "\treturn data;\n";
 		print "}\n";
 		
 		// GETPROP
-		print "mpd_Variant ", struct.name, "_MPD::getprop( ", struct.nativetype, " const* obj, int prop )\n";
+		print "mpd_Variant ", struct.name, "_MPD::getprop( ", struct.nativetype, " const* obj, int p )\n";
 		print "{\n";
 		print "\t(void) obj;\n";
-		print "\tswitch( prop )\n";
+		print "\tswitch( p )\n";
 		print "\t{\n";
 		foreach( i, prop : struct.props )
 		{
@@ -345,11 +359,11 @@ foreach( struct : structs )
 		print "}\n";
 		
 		// SETPROP
-		print "bool ", struct.name, "_MPD::setprop( ", struct.nativetype, "* obj, int prop, const mpd_Variant& val )\n";
+		print "bool ", struct.name, "_MPD::setprop( ", struct.nativetype, "* obj, int p, const mpd_Variant& val )\n";
 		print "{\n";
 		print "\t(void) obj;\n";
 		print "\t(void) val;\n";
-		print "\tswitch( prop )\n";
+		print "\tswitch( p )\n";
 		print "\t{\n";
 		foreach( i, prop : struct.props )
 		{

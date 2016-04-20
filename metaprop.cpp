@@ -155,5 +155,14 @@ int main()
 	mpd_DumpData( mpd_Variant( x006 ) ); puts("");
 	puts("");
 	
+	puts( "--- locations ---" );
+	mpd_Location loc_x004b( x004b ); printf( "x004b ptr: %p, loc ptr: %p, loc prop: %d\n", &x004b, loc_x004b.get_ptr(), loc_x004b.prop_id );
+	mpd_Location loc_x004b_lft( x004b, "lft" ); printf( "x004b.lft ptr: %p, loc ptr: %p, loc prop: %d\n", x004b.lft.ptr, loc_x004b_lft.get_ptr(), loc_x004b_lft.prop_id );
+	printf("x004b contains self: %s (expecting 'true')\n", loc_x004b.contains( loc_x004b ) ? "true" : "false" );
+	printf("x004b contains lft: %s (expecting 'true')\n", loc_x004b.contains( loc_x004b_lft ) ? "true" : "false" );
+	printf("x004 contains x004a: %s (expecting 'true')\n", mpd_Location( x004 ).contains( mpd_Location( x004a ) ) ? "true" : "false" );
+	printf("x004a contains x004: %s (expecting 'false')\n", mpd_Location( x004a ).contains( mpd_Location( x004 ) ) ? "true" : "false" );
+	puts("");
+	
 	return 0;
 }
