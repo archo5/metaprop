@@ -137,5 +137,15 @@ int main()
 	mpd_DumpData( x005 ); puts("");
 	puts("");
 	
+	puts( "--- boxed return values ---" );
+	BoxTest x006;
+	puts("> random vec2");
+	Vec2 randvec2 = mpd_Variant( x006 ).getprop( "random_vec2" ).get_obj<Vec2>();
+	printf( "value = %f;%f\n", randvec2.x, randvec2.y );
+	puts("> random string");
+	std::string randstr = mpd_Variant( x006 ).getprop( "random_str" ).get_obj<std::string>();
+	printf( "value = %s\n", randstr.c_str() );
+	puts("");
+	
 	return 0;
 }

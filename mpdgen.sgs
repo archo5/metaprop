@@ -3,6 +3,16 @@ include "fmt", "string";
 
 global structs = {};
 
+function is_boxable_type( t )
+{
+	info = @GET_TYPE( t );
+	if( info === null )
+	{
+		ERROR( "cannot determine boxability of type '" $ t $ "', it must be specified manually" );
+	}
+	return info.typeval == "mpdt_Struct";
+}
+
 function STRUCT( name, info )
 {
 	if( isset( structs, name ) )
@@ -32,6 +42,8 @@ function STRUCT( name, info )
 				prop.get = prop.ref;
 			if( @prop.set === null )
 				prop.set = prop.ref $ " = mpd_var_get<_TYPE_ >(_VAR_)";
+			if( @prop.box === null )
+				prop.box = prop.get != prop.ref && is_boxable_type( prop.type );
 		}
 	}
 	index = @info.index;
@@ -291,6 +303,7 @@ foreach( struct : structs )
 		// GETPROP
 		print "mpd_Variant ", struct.name, "_MPD::getprop( ", struct.nativetype, " const* obj, int prop )\n";
 		print "{\n";
+		print "\t(void) obj;\n";
 		print "\tswitch( prop )\n";
 		print "\t{\n";
 		foreach( i, prop : struct.props )
@@ -307,6 +320,10 @@ foreach( struct : structs )
 				{
 					print "\tcase ", i, ": return mpd_Variant( (", pntype, " const&) ", prop_get, ", mpd_Variant::Enum );\n";
 				}
+				else if( prop.box )
+				{
+					print "\tcase ", i, ": return mpd_Variant( (", pntype, " const&) ", prop_get, ", mpd_Variant::Box );\n";
+				}
 				else
 				{
 					print "\tcase ", i, ": return (", pntype, " const&) ", prop_get, ";\n";
@@ -320,6 +337,8 @@ foreach( struct : structs )
 		// SETPROP
 		print "bool ", struct.name, "_MPD::setprop( ", struct.nativetype, "* obj, int prop, const mpd_Variant& val )\n";
 		print "{\n";
+		print "\t(void) obj;\n";
+		print "\t(void) val;\n";
 		print "\tswitch( prop )\n";
 		print "\t{\n";
 		foreach( i, prop : struct.props )

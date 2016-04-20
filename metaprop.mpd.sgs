@@ -78,3 +78,12 @@ STRUCT("NodeOptPos",
 	],
 });
 
+STRUCT("BoxTest",
+{
+	props =
+	[
+		{ name = "random_vec2", type = "Vec2", get = "_OBJ_->getRandomVec2()", set = false, box = true },
+		{ name = "random_str", type = "StdString", get = "_OBJ_->getRandomString()", set = false, /* box = true -- check if this is done automatically */ },
+	]
+});
+

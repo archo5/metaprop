@@ -1,6 +1,7 @@
 
 #pragma once
 #include <string>
+#include <stdlib.h>
 
 template< class T > struct UnHandle
 {
@@ -54,5 +55,27 @@ struct NodeOptPos
 {
 	Node node;
 	OptPos optpos;
+};
+
+float randf11(){ return float(rand()) * 2 / float(RAND_MAX) - 1; }
+
+struct BoxTest
+{
+	Vec2 getRandomVec2() const
+	{
+		Vec2 r = { randf11(), randf11() };
+		return r;
+	}
+	std::string getRandomString() const
+	{
+		static const char chars[] = "0123456789";
+		std::string r;
+		r.resize( 8 );
+		for( size_t i = 0; i < r.size(); ++i )
+		{
+			r[ i ] = chars[ rand() % 10 ];
+		}
+		return r;
+	}
 };
 
