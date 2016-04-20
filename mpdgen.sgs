@@ -40,13 +40,22 @@ function STRUCT( name, info )
 			if( @prop.ref === null )
 				prop.ref = "_OBJ_->" $ prop.name;
 			
-			if( @prop.get === null )
-				prop.get = prop.ref;
-			else
-				prop.flags |= " | MPD_PROP_HAS_GETTER";
+			if( prop.type )
+			{
+				if( @prop.get === null )
+					prop.get = prop.ref;
+				else
+					prop.flags |= " | MPD_PROP_HAS_GETTER";
+			}
+			else prop.get = false;
 			
 			if( @prop.set === null )
-				prop.set = prop.ref $ " = mpd_var_get<_TYPE_ >(_VAR_)";
+			{
+				if( prop.type )
+					prop.set = prop.ref $ " = mpd_var_get<_TYPE_ >(_VAR_)";
+				else
+					prop.set = false;
+			}
 			else
 				prop.flags |= " | MPD_PROP_HAS_SETTER";
 			
@@ -113,6 +122,10 @@ function DEFINE_BASETYPE( name, typeval )
 
 function GET_TYPE( name )
 {
+	if( name === null )
+	{
+		return { typeval = "mpdt_None", nativetype = "NULL_TYPE_USED", name = null };
+	}
 	t = @structs[ name ];
 	if( t === null )
 	{
@@ -146,6 +159,8 @@ function CEsc( s )
 
 function TypeInfoPart( t )
 {
+	if( t === null )
+		return "{ 0, mpdt_None, 0 }";
 	info = GET_TYPE( t );
 	return "{ " $ CEsc( t ) $ ", " $ info.typeval $ ", " $ info.typestruct $ " }";
 }

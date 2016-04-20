@@ -164,5 +164,11 @@ int main()
 	printf("x004a contains x004: %s (expecting 'false')\n", mpd_Location( x004a ).contains( mpd_Location( x004 ) ) ? "true" : "false" );
 	puts("");
 	
+	puts( "--- metadata-only properties (type=null) ---" );
+	const mpd_PropInfo* x006pr = mpd_Variant( x006 ).get_typeinfo()->vfindprop("metadata_holder");
+	const mpd_KeyValue* x006md = x006pr->metadata;
+	printf("metadata_holder: type=%s, a=%s, c=%s (expected 'type=<none>, a=b, c=d')\n", mpd_TypeToName(x006pr->type.cls), x006md->find("a")->value, x006md->find("c")->value );
+	puts("");
+	
 	return 0;
 }

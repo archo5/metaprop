@@ -83,6 +83,7 @@ STRUCT("BoxTest",
 	props =
 	[
 		{ name = "postype", type = "PosType" }, // testing undersized enums
+		{ name = "metadata_holder", type = null, metadata = { a = "b", c = "d" } }, // testing metadata-only properties
 		{ name = "random_vec2", type = "Vec2", get = "_OBJ_->getRandomVec2()", set = false, box = true },
 		{ name = "random_str", type = "StdString", get = "_OBJ_->getRandomString()", set = false, /* box = true -- check if this is done automatically */ },
 	]
